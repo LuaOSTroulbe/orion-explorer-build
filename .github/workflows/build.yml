@@ -4,7 +4,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup
         run: |
           sudo apt update
@@ -13,7 +13,7 @@ jobs:
       - name: Build
         run: yes | buildozer -v android debug
       - name: Save
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: OrionAPK
           path: bin/*.apk
