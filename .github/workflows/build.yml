@@ -1,25 +1,19 @@
-name: Build APK
-on: [push, pull_request]
-
+name: Build
+on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      - name: Install dependencies
+      - name: Setup
         run: |
           sudo apt update
-          sudo apt install -y build-essential libtool autoconf automake pkg-config \
-          libffi-dev libssl-dev openjdk-17-jdk unzip zip
-          pip install --upgrade buildozer cython==0.29.33 virtualenv
-
-      - name: Build with Buildozer
-        run: |
-          yes | buildozer -v android debug
-        
-      - name: Upload APK
+          sudo apt install -y build-essential libtool autoconf automake pkg-config libffi-dev libssl-dev openjdk-17-jdk unzip zip
+          pip install buildozer cython==0.29.33
+      - name: Build
+        run: yes | buildozer -v android debug
+      - name: Save
         uses: actions/upload-artifact@v3
         with:
-          name: Orion-Explorer-APK
+          name: OrionAPK
           path: bin/*.apk
