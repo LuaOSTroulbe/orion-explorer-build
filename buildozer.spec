@@ -1,6 +1,6 @@
 [app]
 title = Orion Explorer
-package.name = orionexplorer
+package.name = orionexploreroff
 package.domain = org.test
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,json
