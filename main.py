@@ -1,4 +1,21 @@
-import os, shutil, threading
+import sys
+import os
+
+# === БЛОК ЛОГИРОВАНИЯ ОШИБОК (ДЛЯ ANDROID) ===
+try:
+    # Пытаемся импортировать путь к памяти приложения на Android
+    from android.storage import app_storage_path
+    log_dir = app_storage_path()
+except Exception:
+    # Если запуск на ПК, логи пишем в папку с файлом
+    log_dir = os.path.dirname(__file__)
+
+# Перенаправляем поток ошибок в файл crash_log.txt
+sys.stderr = open(os.path.join(log_dir, "crash_log.txt"), "w")
+# =============================================
+
+import shutil
+import threading
 import webbrowser
 from kivy.lang import Builder
 from kivy.utils import platform
@@ -245,27 +262,18 @@ ScreenManager:
             size_hint_y: 1
 '''
 
-
 class ItemConfirm(OneLineIconListItem):
     path = StringProperty()
     icon_name = StringProperty()
     func = ObjectProperty()
 
-
 class MainScreen(Screen): pass
-
-
 class EditorScreen(Screen): pass
-
-
 class CustomDrawerItem(ButtonBehavior, MDBoxLayout):
     icon = StringProperty()
     text = StringProperty()
-
-
 class FileItem(ButtonBehavior, MDBoxLayout):
     path, name, icon = StringProperty(), StringProperty(), StringProperty()
-
 
 class OrionExplorer(MDApp):
     current_path = StringProperty(primary_path)
@@ -285,12 +293,10 @@ class OrionExplorer(MDApp):
     def on_start(self):
         ask_permissions()
         self.load_path_threaded(self.current_path)
-        # Проверка: показывать ли приветствие
         if not self.store.exists('settings') or not self.store.get('settings')['welcome_shown']:
             Clock.schedule_once(self.show_welcome_dialog, 0.5)
 
     def show_welcome_dialog(self, *args):
-        # Тот самый душевный текст
         welcome_text = (
             "Это ранняя версия приложения. и если вам что-то не понравилось, не спешите ставить низкую оценку приложению. "
             "Пишите мне в ВК, я выслушаю вас и исправлю все баги, ну или добавлю что то, даже если вы просто захотели поговорить. Пишите! "
@@ -318,7 +324,6 @@ class OrionExplorer(MDApp):
         self.dialog.open()
 
     def close_welcome_dialog(self, *args):
-        # Помечаем, что приветствие просмотрено
         self.store.put('settings', welcome_shown=True)
         self.dialog.dismiss()
 
@@ -491,6 +496,11 @@ class OrionExplorer(MDApp):
     def go_home(self):
         self.load_path_threaded(primary_path)
 
-
 if __name__ == "__main__":
-    OrionExplorer().run()
+    try:
+        OrionExplorer().run()
+    except Exception as e:
+        # Пишем в лог, если само приложение не смогло даже стартовать
+        with open(os.path.join(log_dir, "crash_log.txt"), "a") as f:
+            f.write(f"\nCRITICAL BOOT ERROR: {str(e)}")
+        raise e
