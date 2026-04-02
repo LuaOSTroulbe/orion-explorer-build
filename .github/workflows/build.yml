@@ -12,8 +12,8 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y build-essential libtool autoconf automake pkg-config libffi-dev libssl-dev openjdk-17-jdk unzip zip
-          pip install buildozer "cython<3.0" virtualenv
+          sudo apt install -y build-essential libtool autoconf automake pkg-config libffi-dev libssl-dev openjdk-17-jdk unzip zip libltdl-dev
+          pip install "cython<3.0" buildozer virtualenv
       - name: Build
         run: |
           yes | buildozer -v android debug
