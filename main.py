@@ -1,18 +1,16 @@
 import sys
 import os
 
-# === БЛОК ЛОГИРОВАНИЯ ОШИБОК (ДЛЯ ANDROID) ===
+# Пытаемся настроить логирование максимально рано
 try:
-    # Пытаемся импортировать путь к памяти приложения на Android
-    from android.storage import app_storage_path
-    log_dir = app_storage_path()
-except Exception:
-    # Если запуск на ПК, логи пишем в папку с файлом
-    log_dir = os.path.dirname(__file__)
-
-# Перенаправляем поток ошибок в файл crash_log.txt
-sys.stderr = open(os.path.join(log_dir, "crash_log.txt"), "w")
-# =============================================
+    from android.storage import app_context
+    # Внутренняя папка приложения, куда ВСЕГДА есть доступ на запись
+    log_dir = app_context.getFilesDir().getAbsolutePath()
+    log_path = os.path.join(log_dir, "crash_log.txt")
+    sys.stderr = open(log_path, "w")
+    print("LOGGING STARTED ON ANDROID")
+except Exception as e:
+    print(f"Logging setup failed: {e}")
 
 import shutil
 import threading
@@ -262,18 +260,27 @@ ScreenManager:
             size_hint_y: 1
 '''
 
+
 class ItemConfirm(OneLineIconListItem):
     path = StringProperty()
     icon_name = StringProperty()
     func = ObjectProperty()
 
+
 class MainScreen(Screen): pass
+
+
 class EditorScreen(Screen): pass
+
+
 class CustomDrawerItem(ButtonBehavior, MDBoxLayout):
     icon = StringProperty()
     text = StringProperty()
+
+
 class FileItem(ButtonBehavior, MDBoxLayout):
     path, name, icon = StringProperty(), StringProperty(), StringProperty()
+
 
 class OrionExplorer(MDApp):
     current_path = StringProperty(primary_path)
@@ -298,7 +305,7 @@ class OrionExplorer(MDApp):
 
     def show_welcome_dialog(self, *args):
         welcome_text = (
-            "Это ранняя версия приложения. и если вам что-то не понравилось, не спешите ставить низкую оценку приложению. "
+            "Это бета версия приложения. и если вам что-то не понравилось, не спешите ставить низкую оценку приложению. "
             "Пишите мне в ВК, я выслушаю вас и исправлю все баги, ну или добавлю что то, даже если вы просто захотели поговорить. Пишите! "
             "Так же перед использованием приложения вы должны ознакомиться с политикой конфиденциальности. Нажимая Продолжить, вы автоматически соглашаетесь с политикой конфиденциальности."
         )
@@ -496,11 +503,12 @@ class OrionExplorer(MDApp):
     def go_home(self):
         self.load_path_threaded(primary_path)
 
+
 if __name__ == "__main__":
     try:
         OrionExplorer().run()
     except Exception as e:
-        # Пишем в лог, если само приложение не смогло даже стартовать
+        # Финальная запись, если приложение упало даже не запустившись
         with open(os.path.join(log_dir, "crash_log.txt"), "a") as f:
             f.write(f"\nCRITICAL BOOT ERROR: {str(e)}")
         raise e
